@@ -44,6 +44,8 @@ class APIClient:
                 )
             elif method.upper() == "DELETE":
                 response = requests.delete(url, params=params, timeout=30)
+            elif method.upper() == "PATCH":
+                response = requests.patch(url, json=json, params=params, timeout=30)
             else:
                 raise ValueError(f"Unsupported HTTP method: {method}")
             
@@ -125,6 +127,30 @@ class APIClient:
     def delete_wardrobe_item(self, item_id: int) -> Dict[str, Any]:
         # Delete a single wardrobe item from database
         return self._make_request("DELETE", f"/wardrobe/item/{item_id}")
+
+    def update_wardrobe_item(
+        self,
+        item_id: int,
+        category: str,
+        subcategory: str = "",
+        season: List[str] = None,
+        brand: str = "",
+        colors: List[str] = None,
+        occasions: List[str] = None,
+        notes: str = ""
+    ) -> Dict[str, Any]:
+        # Update a wardrobe item's category and metadata
+        # Ensure no None values - replace with empty string/list
+        json_data = {
+            "category": category,
+            "subcategory": subcategory or "",
+            "season": season if season is not None else [],
+            "brand": brand or "",
+            "colors": colors if colors is not None else [],
+            "occasions": occasions if occasions is not None else [],
+            "notes": notes or ""
+        }
+        return self._make_request("PATCH", f"/wardrobe/item/{item_id}", json=json_data)
     
     def delete_outfit(self, outfit_id: str) -> Dict[str, Any]:
         # Delete a saved outfit from database
