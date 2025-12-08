@@ -1421,20 +1421,40 @@ if page == "My Wardrobe":
                                 edit_notes = st.text_area("Notes", value=item.get("notes", ""), key=f"edit_notes_{item_id}", height=60)
                                 
                                 if st.button("Save Changes", key=f"save_{item_id}", use_container_width=True):
-                                    # Find and update the actual item in session state (not the filtered copy)
-                                    for session_item in st.session_state.uploaded_items:
-                                        if session_item.get("item_id") == item_id:
-                                            # Update all tags in the actual session state item
-                                            session_item["category"] = edit_category
-                                            session_item["subcategory"] = edit_subcategory
-                                            session_item["season"] = edit_season
-                                            session_item["brand"] = edit_brand
-                                            session_item["colors"] = [c.strip() for c in edit_colors.split(",") if c.strip()] if edit_colors else []
-                                            session_item["occasions"] = edit_occasions
-                                            session_item["notes"] = edit_notes
-                                            break
-                                    st.success("✓ Changes saved!")
-                                    st.rerun()
+                                    try:
+                                        # Parse colors from comma-separated string, ensure no None values
+                                        colors_list = [c.strip() for c in (edit_colors or "").split(",") if c.strip()]
+
+                                        # Save to database
+                                        api_client.update_wardrobe_item(
+                                            item_id=item_id,
+                                            category=edit_category,
+                                            subcategory=edit_subcategory or "",
+                                            season=edit_season or [],
+                                            brand=edit_brand or "",
+                                            colors=colors_list,
+                                            occasions=edit_occasions or [],
+                                            notes=edit_notes or ""
+                                        )
+
+                                        # Update session state for immediate UI feedback
+                                        for session_item in st.session_state.uploaded_items:
+                                            if session_item.get("item_id") == item_id:
+                                                session_item["category"] = edit_category
+                                                session_item["subcategory"] = edit_subcategory
+                                                session_item["season"] = edit_season
+                                                session_item["brand"] = edit_brand
+                                                session_item["colors"] = colors_list
+                                                session_item["occasions"] = edit_occasions
+                                                session_item["notes"] = edit_notes
+                                                break
+
+                                        # Clear cache so next load gets fresh data
+                                        get_cached_wardrobe_items.clear()
+                                        st.success("✓ Changes saved!")
+                                        st.rerun()
+                                    except Exception as e:
+                                        st.error(f"Failed to save: {str(e)}")
                         
                         with btn_col2:
                             with st.popover("Delete", use_container_width=True):

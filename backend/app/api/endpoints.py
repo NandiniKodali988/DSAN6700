@@ -65,6 +65,16 @@ class SaveOutfitRequest(BaseModel):
     name: str = ""
 
 
+class UpdateWardrobeItemRequest(BaseModel):
+    category: str
+    subcategory: str = ""
+    season: List[str] = []
+    brand: str = ""
+    colors: List[str] = []
+    occasions: List[str] = []
+    notes: str = ""
+
+
 # -----------------------------
 # Upload Wardrobe Item
 # -----------------------------
@@ -278,19 +288,16 @@ async def save_outfit(req: SaveOutfitRequest, db=Depends(get_db)):
     try:
         outfit_id = str(uuid4())
 
-        # Store name in occasion field temporarily until DB has name column
-        # Format: "Outfit Name | Occasion" or just "Occasion" if no name
-        occasion_with_name = f"{req.name} | {req.occasion}" if req.name else req.occasion
-
         await db.execute(
             """
-            INSERT INTO saved_outfits (outfit_id, items, occasion, season)
-            VALUES ($1, $2, $3, $4)
+            INSERT INTO saved_outfits (outfit_id, items, occasion, season, name)
+            VALUES ($1, $2, $3, $4, $5)
             """,
             outfit_id,
             req.items,
-            occasion_with_name,
+            req.occasion,
             req.season,
+            req.name,
         )
 
         return {"status": "success", "outfit_id": outfit_id}
@@ -307,7 +314,7 @@ async def get_saved_outfits(db=Depends(get_db)):
 
     outfits = await db.fetch(
         """
-        SELECT outfit_id, items, occasion, season, created_at
+        SELECT outfit_id, items, occasion, season, name, created_at
         FROM saved_outfits
         ORDER BY created_at DESC
         """
@@ -347,18 +354,10 @@ async def get_saved_outfits(db=Depends(get_db)):
         created_at = row["created_at"]
         created_at = created_at.isoformat() if created_at else None
 
-        # Parse name from occasion if it contains " | "
-        occasion_raw = row["occasion"]
-        if " | " in occasion_raw:
-            name, occasion = occasion_raw.split(" | ", 1)
-        else:
-            name = ""
-            occasion = occasion_raw
-        
         response.append({
             "outfit_id": row["outfit_id"],
-            "name": name,
-            "occasion": occasion,
+            "name": row["name"] or "",
+            "occasion": row["occasion"],
             "season": row["season"],
             "created_at": created_at,
             "items": enriched_items
@@ -392,6 +391,39 @@ async def delete_wardrobe_item(item_id: int, db=Depends(get_db)):
         return {"status": "success", "deleted_item_id": item_id}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Delete failed: {str(e)}")
+
+
+# -----------------------------
+# Update Wardrobe Item
+# -----------------------------
+@router.patch("/wardrobe/item/{item_id}")
+async def update_wardrobe_item(item_id: int, req: UpdateWardrobeItemRequest, db=Depends(get_db)):
+    try:
+        # Build metadata JSON from request fields
+        metadata = {
+            "subcategory": req.subcategory,
+            "season": req.season,
+            "brand": req.brand,
+            "colors": req.colors,
+            "occasions": req.occasions,
+            "notes": req.notes,
+        }
+
+        # Update category and metadata
+        await db.execute(
+            """
+            UPDATE wardrobe_items
+            SET category = $1, metadata = $2
+            WHERE item_id = $3
+            """,
+            req.category,
+            json.dumps(metadata),
+            item_id,
+        )
+
+        return {"status": "success", "item_id": item_id}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Update failed: {str(e)}")
 
 
 # -----------------------------
