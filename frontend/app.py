@@ -1069,7 +1069,7 @@ logo_path = BASE_DIR / "logo.png"
 
 st.sidebar.image(str(logo_path))
 
-st.sidebar.image("logo.png")
+#st.sidebar.image("logo.png")
 st.sidebar.title("Generate outfits from your wardrobe.")
 #st.sidebar.write("Your digital stylist")
 
