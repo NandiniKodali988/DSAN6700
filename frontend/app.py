@@ -1637,11 +1637,7 @@ elif page == "Outfit Builder":
             outfit_cols = st.columns(min(len(st.session_state.generated_outfits), 3))
             for idx, outfit in enumerate(st.session_state.generated_outfits[:3]):
                 with outfit_cols[idx]:
-                    score = outfit.get("score", 0)
-                    score_display = f"Match: {score:.0%}" if score > 0 else ""
                     st.markdown(f"**Outfit {idx + 1}**")
-                    if score_display:
-                        st.caption(score_display)
                     outfit_items = []
                     for item_id in outfit.get("items", []):
                         item = items_by_id.get(item_id)
