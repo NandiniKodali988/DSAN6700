@@ -4,7 +4,7 @@ from api_client import APIClient
 import os
 from PIL import Image
 import base64
-import Path
+from pathlib import Path
 
 # --- App title ---
 st.set_page_config(page_title="Digital Closet", layout="wide")
