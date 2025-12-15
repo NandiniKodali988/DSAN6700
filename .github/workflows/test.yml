@@ -40,4 +40,15 @@ jobs:
         run: poetry install --no-interaction
 
       - name: Run tests
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/test
+          DB_PORT: "5432"
+          DB_USER: test
+          DB_PASSWORD: test
+          DB_NAME: test
+          AWS_REGION: us-east-1
+          AWS_ACCESS_KEY_ID: test
+          AWS_SECRET_ACCESS_KEY: test
+          S3_BUCKET_DOCUMENTS: test-docs
+          S3_BUCKET_IMAGES: test-images
         run: poetry run pytest -v
