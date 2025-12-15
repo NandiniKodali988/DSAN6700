@@ -73,8 +73,15 @@ def real_data():
     if not all(os.path.exists(p) for p in [embeddings_path, labels_path, classes_path]):
         pytest.skip("Data files not available. Run 'git lfs pull' to download.")
 
-    embeddings = np.load(embeddings_path)
-    labels = np.load(labels_path)
+    try:
+        embeddings = np.load(embeddings_path, allow_pickle=True)
+        labels = np.load(labels_path, allow_pickle=True)
+        # Check if files are valid (LFS pointer files will be small/invalid)
+        if embeddings.size < 1000:
+            pytest.skip("LFS files not pulled. Run 'git lfs pull' to download.")
+    except Exception as e:
+        pytest.skip(f"Could not load data files: {e}")
+
     with open(classes_path, 'r') as f:
         class_names = [line.strip() for line in f.readlines()]
 
