@@ -8,6 +8,35 @@ A fashion recommendation system that helps users style their own clothing or bui
 
 ![Architecture Diagram](docs/architecture.png)
 
+## Key Features
+
+### Outfit Generation
+1. Upload clothing items to your wardrobe
+2. Select occasion (Casual, Formal, Business, Party) and season
+3. Click "Generate" to receive AI-recommended outfit combinations
+4. Customize outfits by adding or removing items
+5. Save your favorite outfits for later
+
+### Wardrobe Management
+- Upload images with automatic category classification via ResNet-50
+- Edit item details including brand, color, occasion, and season tags
+- Delete items you no longer want in your wardrobe
+
+### Saved Outfits
+- View all saved outfits with filtering by occasion and season
+- Edit saved outfits by adding/removing items
+- Rate and review outfits for future reference
+
+## Running with Docker
+
+To run the entire application stack locally:
+
+```bash
+docker-compose up --build
+```
+
+This starts the FastAPI backend, Streamlit frontend, PostgreSQL database, and Prometheus/Grafana monitoring.
+
 ## Project Structure
 
 ### Computer Vision Files (`ComputerVisionFiles/`)
@@ -109,7 +138,7 @@ The backend is deployed on the cloud using ***Render***, located at https://dsan
 
 The frontend is written using Streamlit, where the API calls are connected to the various functionalities. To run the frontend locally, run 
 ```bash
-uvicorn backend.app.main:app --reload
+streamlit run frontend/app.py
 ```
 
 The frontend is deployed on the cloud using Streamlit, located at https://stylesynth.streamlit.app. 
